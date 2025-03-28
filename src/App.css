@@ -9,47 +9,257 @@ html, body, #root, .app {
   height: 100%;
   overflow: hidden;
   user-select: none;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
+/* Start Menu Styles */
 .start-menu {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   height: 100%;
-  background-color: #222;
+  background: linear-gradient(to bottom, #443322, #221100);
   color: white;
+  padding: 20px;
+  overflow-y: auto;
 }
 
 .start-menu h1 {
-  font-size: 3rem;
+  font-size: 3.5rem;
   margin-bottom: 1rem;
   color: #ff9900;
+  text-shadow: 0 0 10px rgba(255, 153, 0, 0.5);
+  font-weight: bold;
+  letter-spacing: 2px;
 }
 
 .start-menu p {
-  font-size: 1.2rem;
+  font-size: 1.3rem;
   margin-bottom: 2rem;
-  max-width: 600px;
+  max-width: 700px;
   text-align: center;
+  line-height: 1.6;
 }
 
-.start-menu button {
-  padding: 1rem 2rem;
+.ant-graphic {
+  width: 300px;
+  height: 200px;
+  position: relative;
+  margin: 20px 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.animated-ant {
+  position: relative;
+  width: 200px;
+  height: 100px;
+}
+
+.ant-head {
+  position: absolute;
+  top: 30px;
+  left: 150px;
+  width: 30px;
+  height: 25px;
+  background-color: #ff9900;
+  border-radius: 50%;
+}
+
+.ant-body {
+  position: absolute;
+  top: 35px;
+  left: 110px;
+  width: 40px;
+  height: 25px;
+  background-color: #ff9900;
+  border-radius: 50%;
+}
+
+.ant-abdomen {
+  position: absolute;
+  top: 30px;
+  left: 50px;
+  width: 60px;
+  height: 40px;
+  background-color: #ff9900;
+  border-radius: 50%;
+}
+
+.ant-legs {
+  position: absolute;
+  width: 100px;
+  height: 50px;
+}
+
+.left-legs {
+  top: 20px;
+  left: 60px;
+}
+
+.right-legs {
+  top: 20px;
+  left: 60px;
+  transform: scaleY(-1);
+}
+
+.leg {
+  position: absolute;
+  width: 40px;
+  height: 3px;
+  background-color: #ff9900;
+  transform-origin: left center;
+}
+
+.left-legs .leg:nth-child(1) {
+  top: 0;
+  left: 20px;
+  transform: rotate(-30deg);
+  animation: legMove 1s infinite alternate-reverse;
+}
+
+.left-legs .leg:nth-child(2) {
+  top: 15px;
+  left: 20px;
+  transform: rotate(0deg);
+  animation: legMove 1s infinite alternate 0.2s;
+}
+
+.left-legs .leg:nth-child(3) {
+  top: 30px;
+  left: 20px;
+  transform: rotate(30deg);
+  animation: legMove 1s infinite alternate-reverse 0.4s;
+}
+
+.ant-antennae {
+  position: absolute;
+  top: 15px;
+  left: 150px;
+  width: 30px;
+  height: 40px;
+}
+
+.antenna {
+  position: absolute;
+  width: 25px;
+  height: 2px;
+  background-color: #ff9900;
+  transform-origin: left center;
+}
+
+.antenna:nth-child(1) {
+  top: 5px;
+  left: 10px;
+  transform: rotate(-30deg);
+  animation: antennaMove 2s infinite alternate;
+}
+
+.antenna:nth-child(2) {
+  top: 5px;
+  left: 10px;
+  transform: rotate(30deg);
+  animation: antennaMove 2s infinite alternate-reverse;
+}
+
+@keyframes legMove {
+  0% { transform: rotate(-10deg); }
+  100% { transform: rotate(-40deg); }
+}
+
+@keyframes antennaMove {
+  0% { transform: rotate(10deg); }
+  100% { transform: rotate(50deg); }
+}
+
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
+}
+
+.features {
+  list-style-type: none;
+  margin-bottom: 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.features li {
+  font-size: 1.2rem;
+  margin: 10px 0;
+  padding: 10px 15px;
+  background-color: rgba(255, 153, 0, 0.2);
+  border-radius: 10px;
+  border-left: 4px solid #ff9900;
+  width: 80%;
+  max-width: 500px;
+}
+
+.start-button {
+  padding: 1rem 2.5rem;
   font-size: 1.5rem;
   background-color: #ff9900;
   color: black;
   border: none;
-  border-radius: 5px;
+  border-radius: 10px;
   cursor: pointer;
   transition: all 0.2s;
+  font-weight: bold;
+  box-shadow: 0 5px 15px rgba(255, 153, 0, 0.4);
 }
 
-.start-menu button:hover {
+.start-button:hover {
   background-color: #ffb444;
   transform: scale(1.05);
+  box-shadow: 0 8px 20px rgba(255, 153, 0, 0.6);
 }
 
+.controls-guide {
+  margin-top: 30px;
+  background-color: rgba(0, 0, 0, 0.3);
+  padding: 15px 25px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 153, 0, 0.3);
+}
+
+.controls-guide h3 {
+  margin-bottom: 10px;
+  color: #ff9900;
+  font-size: 1.3rem;
+}
+
+.controls-guide p {
+  margin: 5px 0;
+  font-size: 1rem;
+}
+
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 20px 0;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid rgba(255, 153, 0, 0.3);
+  border-radius: 50%;
+  border-top-color: #ff9900;
+  animation: spin 1s linear infinite;
+  margin-bottom: 10px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* In-game UI Styles */
 .ui-container {
   position: absolute;
   top: 0;
@@ -68,87 +278,100 @@ html, body, #root, .app {
 .resource-bar {
   display: flex;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 15px;
+  background-color: rgba(0, 0, 0, 0.4);
+  padding: 10px;
+  border-radius: 5px;
+  backdrop-filter: blur(3px);
 }
 
 .health-bar, .food-bar {
   height: 20px;
   width: 200px;
-  background-color: #333;
-  border-radius: 3px;
+  background-color: rgba(0, 0, 0, 0.5);
+  border-radius: 5px;
   overflow: hidden;
   margin-left: 10px;
+  box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.5);
 }
 
 .health-bar > div {
   height: 100%;
-  background-color: #ff4444;
+  background: linear-gradient(to right, #ff0000, #ff6666);
+  transition: width 0.3s ease-out;
 }
 
 .food-bar > div {
   height: 100%;
-  background-color: #44ff44;
+  background: linear-gradient(to right, #00cc00, #66ff66);
+  transition: width 0.3s ease-out;
 }
 
 .colony-stats {
   position: absolute;
   top: 20px;
   right: 20px;
-  background-color: rgba(0, 0, 0, 0.5);
-  padding: 10px 15px;
-  border-radius: 5px;
+  background-color: rgba(0, 0, 0, 0.6);
+  padding: 15px 20px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 153, 0, 0.5);
+  backdrop-filter: blur(3px);
 }
 
 .upgrade-ready {
   color: #ffdd44;
   font-weight: bold;
-  margin-top: 5px;
+  margin-top: 8px;
   animation: pulse 1.5s infinite;
+  text-shadow: 0 0 10px rgba(255, 221, 68, 0.6);
 }
 
 @keyframes pulse {
-  0% { opacity: 0.6; }
-  50% { opacity: 1; }
-  100% { opacity: 0.6; }
+  0% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.05); }
+  100% { opacity: 0.6; transform: scale(1); }
 }
 
 .message-popup {
   position: absolute;
-  top: 50%;
+  top: 40%;
   left: 50%;
   transform: translate(-50%, -50%);
   background-color: rgba(0, 0, 0, 0.7);
   color: white;
-  padding: 10px 20px;
-  border-radius: 5px;
-  border: 1px solid #ff9900;
+  padding: 15px 25px;
+  border-radius: 10px;
+  border: 2px solid #ff9900;
   text-align: center;
   animation: fadeIn 0.3s ease-in-out;
   max-width: 80%;
+  backdrop-filter: blur(5px);
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
 }
 
 .initial-instructions {
   position: absolute;
-  bottom: 50%;
+  bottom: 40%;
   left: 50%;
   transform: translateX(-50%);
   background-color: rgba(0, 0, 0, 0.7);
   color: white;
-  padding: 10px 20px;
-  border-radius: 5px;
-  border: 1px solid #ff9900;
+  padding: 15px 25px;
+  border-radius: 10px;
+  border: 2px solid #ff9900;
   text-align: center;
-  animation: fadeIn 0.3s ease-in-out, fadeOut 0.3s ease-in-out 5s forwards;
+  animation: fadeIn 0.3s ease-in-out, fadeOut 0.3s ease-in-out 8s forwards;
+  backdrop-filter: blur(5px);
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from { opacity: 0; transform: translate(-50%, -60%); }
+  to { opacity: 1; transform: translate(-50%, -50%); }
 }
 
 @keyframes fadeOut {
-  from { opacity: 1; }
-  to { opacity: 0; }
+  from { opacity: 1; transform: translate(-50%, -50%); }
+  to { opacity: 0; transform: translate(-50%, -40%); }
 }
 
 .minimap {
@@ -159,6 +382,7 @@ html, body, #root, .app {
   height: 200px;
   border-radius: 50%;
   background-color: rgba(0, 0, 0, 0.5);
-  border: 2px solid #ff9900;
+  border: 3px solid #ff9900;
   overflow: hidden;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
 }
