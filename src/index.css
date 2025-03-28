@@ -1,0 +1,306 @@
+:root {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: 'Arial', sans-serif;
+  overflow: hidden;
+}
+
+/* UI Components */
+.ui-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.ui-container * {
+  pointer-events: auto;
+}
+
+.game-hud {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  width: 300px;
+  background-color: rgba(0, 0, 0, 0.6);
+  border-radius: 8px;
+  padding: 10px;
+  color: white;
+}
+
+.resource-bar {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.resource-bar span {
+  margin-right: 10px;
+  width: 60px;
+}
+
+.health-bar, .food-bar {
+  flex-grow: 1;
+  height: 15px;
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.health-bar div {
+  height: 100%;
+  background-color: #ff3333;
+  transition: width 0.3s ease;
+}
+
+.food-bar div {
+  height: 100%;
+  background-color: #33cc33;
+  transition: width 0.3s ease;
+}
+
+.colony-stats {
+  position: absolute;
+  top: 120px;
+  left: 20px;
+  background-color: rgba(0, 0, 0, 0.6);
+  border-radius: 8px;
+  padding: 10px;
+  color: white;
+}
+
+.colony-stats p {
+  margin: 5px 0;
+}
+
+.upgrade-ready {
+  color: #ffcc00;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.7; }
+  50% { opacity: 1; }
+  100% { opacity: 0.7; }
+}
+
+.message-popup {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 15px 25px;
+  border-radius: 8px;
+  animation: fade-out 3s forwards;
+}
+
+@keyframes fade-out {
+  0% { opacity: 1; }
+  70% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.controls-panel {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 15px;
+  border-radius: 8px;
+  max-width: 300px;
+}
+
+.controls-panel h3 {
+  margin-bottom: 10px;
+  color: #ffcc00;
+}
+
+.controls-panel p {
+  margin: 5px 0;
+  font-size: 14px;
+}
+
+.initial-instructions {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 10px 15px;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+/* Radar/Minimap */
+.minimap {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
+}
+
+/* Game Over Screen */
+.game-over {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  z-index: 100;
+}
+
+.game-over h2 {
+  font-size: 48px;
+  margin-bottom: 20px;
+  color: #ff3333;
+}
+
+.game-over p {
+  font-size: 24px;
+  margin-bottom: 30px;
+}
+
+.restart-button {
+  padding: 12px 24px;
+  background-color: #ffcc00;
+  color: black;
+  border: none;
+  border-radius: 4px;
+  font-size: 18px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.restart-button:hover {
+  background-color: #ffdd33;
+}
+
+/* Player ant switcher */
+.ant-switcher {
+  position: absolute;
+  top: 240px;
+  left: 20px;
+  background-color: rgba(0, 0, 0, 0.6);
+  border-radius: 8px;
+  padding: 10px;
+  color: white;
+}
+
+.ant-switcher p {
+  margin-bottom: 8px;
+}
+
+.ant-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.ant-button {
+  display: flex;
+  align-items: center;
+  background-color: rgba(102, 51, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  padding: 5px 10px;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.ant-button:hover {
+  background-color: rgba(153, 76, 0, 0.8);
+}
+
+.ant-button.active {
+  background-color: rgba(255, 153, 0, 0.8);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.ant-health {
+  width: 30px;
+  height: 6px;
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 3px;
+  margin-left: 10px;
+  overflow: hidden;
+}
+
+.ant-health div {
+  height: 100%;
+  background-color: #ff3333;
+}
+
+button {
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: #1a1a1a;
+  cursor: pointer;
+  transition: border-color 0.25s;
+}
+
+button:hover {
+  border-color: #646cff;
+}
+
+button:focus,
+button:focus-visible {
+  outline: 4px auto -webkit-focus-ring-color;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color: #213547;
+    background-color: #ffffff;
+  }
+  a:hover {
+    color: #747bff;
+  }
+  button {
+    background-color: #f9f9f9;
+  }
+}
