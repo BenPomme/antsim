@@ -101,7 +101,7 @@ function App() {
               shadows 
               gl={{ antialias: true, alpha: false }} 
               dpr={[1, 1.5]} // Performance optimization
-              camera={{ fov: 70, position: [0, 5, 10], near: 0.1, far: 1000 }}
+              camera={{ fov: 70, near: 0.1, far: 1000 }} 
             >
               {/* Enhanced lighting */}
               <ambientLight intensity={0.4} />

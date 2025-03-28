@@ -1,83 +1,80 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
-import { useBox } from '@react-three/cannon';
-import { Vector3, Group } from 'three';
+import { useSphere } from '@react-three/cannon';
+import { Vector3 } from 'three';
+import { useKeyboardControls } from '@react-three/drei';
 import { useStore } from '../store/gameStore';
 
 export default function Player() {
-  const { movePlayer, moveColony, playerPosition } = useStore();
-  const { camera } = useThree();
-  const [ref, api] = useBox(() => ({
+  // Get player stats from store
+  const { updatePlayerPosition, updatePlayerRotation, health } = useStore();
+  
+  // Physics setup
+  const [ref, api] = useSphere(() => ({
     mass: 1,
-    position: playerPosition,
-    args: [0.8, 0.4, 1.2],
-    angularFactor: [0, 1, 0],
-    linearDamping: 0.9,
+    type: 'Dynamic',
+    position: [0, 1, 0],
+    args: [0.5],
+    linearDamping: 0.95,
+    angularFactor: [0, 0, 0], // Prevent rotation from physics
   }));
-
-  const groupRef = useRef<Group>(null);
+  
+  // References for movement and rotation
+  const groupRef = useRef<any>(null);
+  const position = useRef<Vector3>(new Vector3(0, 1, 0));
   const velocity = useRef<Vector3>(new Vector3());
-  const direction = useRef<Vector3>(new Vector3());
   const rotation = useRef<number>(0);
-  const isMoving = useRef(false);
+  const direction = useRef<Vector3>(new Vector3());
+  
+  // Keyboard controls state
+  const [, get] = useKeyboardControls();
+  const isMoving = useRef({ forward: false, backward: false });
   const isTurning = useRef({ left: false, right: false });
-
+  
+  // Add a cooldown for the space key
+  const [spacePressed, setSpacePressed] = useState(false);
+  const spaceCooldown = useRef<number>(0);
+  
+  // Initialize references
   useEffect(() => {
-    // Set colony position once at start
-    moveColony([0, 0, 0]);
-
-    // Add keyboard event listeners
-    const handleKeyDown = (event: KeyboardEvent) => {
-      switch (event.key.toLowerCase()) {
-        case 'w':
-          direction.current.z = -1;
-          isMoving.current = true;
-          break;
-        case 's':
-          direction.current.z = 1;
-          isMoving.current = true;
-          break;
-        case 'a':
-          isTurning.current.left = true;
-          break;
-        case 'd':
-          isTurning.current.right = true;
-          break;
-      }
-    };
-
-    const handleKeyUp = (event: KeyboardEvent) => {
-      switch (event.key.toLowerCase()) {
-        case 'w':
-        case 's':
-          direction.current.z = 0;
-          if (direction.current.z === 0) {
-            isMoving.current = false;
-          }
-          break;
-        case 'a':
-          isTurning.current.left = false;
-          break;
-        case 'd':
-          isTurning.current.right = false;
-          break;
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
-
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('keyup', handleKeyUp);
-    };
-  }, [moveColony]);
-
+    const unsubscribe = api.position.subscribe(p => {
+      position.current.set(p[0], p[1], p[2]);
+    });
+    
+    return unsubscribe;
+  }, [api]);
+  
+  // Handle keyboard input for player movement
   useFrame((_, delta) => {
-    if (!ref.current) return;
-
-    const position = ref.current.position;
-    movePlayer([position.x, position.y, position.z]);
+    const { forward, backward, left, right, jump, attack, collect } = get();
+    
+    isMoving.current = { forward, backward };
+    isTurning.current = { left, right };
+    
+    // Handle jump/spawn ant with cooldown
+    if (jump && !spacePressed && Date.now() > spaceCooldown.current) {
+      setSpacePressed(true);
+      spaceCooldown.current = Date.now() + 1000; // 1 second cooldown
+      
+      // Add a new ant to the player's colony
+      const { increaseColonySize } = useStore.getState();
+      increaseColonySize();
+      
+      setTimeout(() => setSpacePressed(false), 200);
+    }
+    
+    // Handle attack
+    if (attack) {
+      // Attack nearest enemy - implement later
+    }
+    
+    // Handle resource collection
+    if (collect) {
+      // Collect resources near player - implement later
+    }
+    
+    // Update game state with current position
+    updatePlayerPosition([position.current.x, position.current.y, position.current.z]);
 
     // Update velocity
     api.velocity.subscribe(v => velocity.current.set(v[0], v[1], v[2]));
@@ -93,15 +90,19 @@ export default function Player() {
       api.rotation.set(0, rotation.current, 0);
     }
 
+    // Update game state with current rotation
+    updatePlayerRotation(rotation.current);
+
     // Apply current rotation to get proper forward direction
     const forward = new Vector3(0, 0, -1).applyAxisAngle(new Vector3(0, 1, 0), rotation.current);
 
     // Handle movement
-    if (isMoving.current) {
+    if (isMoving.current.forward || isMoving.current.backward) {
       const speed = 5;
+      const direction = isMoving.current.forward ? 1 : -1;
       
       // Calculate movement direction based on forward vector
-      const moveDirection = new Vector3().copy(forward).multiplyScalar(direction.current.z);
+      const moveDirection = new Vector3().copy(forward).multiplyScalar(direction);
       
       // Apply velocity in the proper direction
       api.velocity.set(moveDirection.x * speed, velocity.current.y, moveDirection.z * speed);
@@ -115,15 +116,6 @@ export default function Player() {
         });
       }
     }
-
-    // Make camera follow the player
-    const cameraOffset = new Vector3(0, 5, 8).applyAxisAngle(new Vector3(0, 1, 0), rotation.current);
-    camera.position.set(
-      position.x + cameraOffset.x,
-      position.y + cameraOffset.y,
-      position.z + cameraOffset.z
-    );
-    camera.lookAt(position.x, position.y, position.z);
   });
 
   return (

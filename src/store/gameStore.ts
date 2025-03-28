@@ -50,6 +50,7 @@ interface GameState {
   
   // Player properties
   playerPosition: [number, number, number];
+  playerRotation: number; // New property for player rotation
   health: number;
   food: number;
   materials: number;
@@ -83,6 +84,7 @@ interface GameState {
   increaseColonySize: () => void;
   
   updatePlayerPosition: (position: [number, number, number]) => void;
+  updatePlayerRotation: (rotation: number) => void; // New method
   switchActiveAnt: (index: number) => void;
   addPlayerAnt: () => void;
   
@@ -108,6 +110,7 @@ export const useStore = create<GameState>((set, get) => ({
   // Initial state
   worldSize: 200,
   playerPosition: [0, 1, 0],
+  playerRotation: 0, // Initial rotation
   health: 100,
   food: 50,
   materials: 20,
@@ -239,6 +242,10 @@ export const useStore = create<GameState>((set, get) => ({
     });
   },
   
+  updatePlayerRotation: (rotation) => {
+    set({ playerRotation: rotation });
+  },
+  
   switchActiveAnt: (index) => {
     if (index >= 0 && index < get().playerAnts.length) {
       // Mark current ant as inactive
@@ -368,6 +375,7 @@ export const useStore = create<GameState>((set, get) => ({
     set({
       worldSize: 200,
       playerPosition: [0, 1, 0],
+      playerRotation: 0, // Initial rotation
       health: 100,
       food: 50,
       materials: 20,

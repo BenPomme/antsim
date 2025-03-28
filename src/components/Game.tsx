@@ -5,6 +5,7 @@ import Player from './Player';
 import ResourceComponent from './Resource';
 import AntColony from './AntColony';
 import Ground from './Ground';
+import CameraController from './CameraController';
 import { Vector3 } from 'three';
 
 // Environmental props components
@@ -197,6 +198,7 @@ export default function Game() {
     <>
       <Ground />
       <Player />
+      <CameraController distance={8} height={3} smoothing={0.08} lookAtOffset={0.8} />
       
       {/* Resources */}
       {resources.map(resource => (
