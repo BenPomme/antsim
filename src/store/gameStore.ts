@@ -109,7 +109,7 @@ interface GameState {
 export const useStore = create<GameState>((set, get) => ({
   // Initial state
   worldSize: 200,
-  playerPosition: [0, 1, 0],
+  playerPosition: [5, 0.5, 5], // Start player 5 units away from colony
   playerRotation: 0, // Initial rotation
   health: 100,
   food: 50,
@@ -117,7 +117,7 @@ export const useStore = create<GameState>((set, get) => ({
   playerAnts: [
     { 
       id: 'player-ant-1', 
-      position: [0, 1, 0], 
+      position: [5, 0.5, 5], // Start player 5 units away from colony
       active: true,
       health: 100
     }
@@ -207,10 +207,18 @@ export const useStore = create<GameState>((set, get) => ({
     // Check if player has enough food
     if (food >= costPerAnt) {
       set((state) => {
-        // Add new ant to player's colony
+        // Generate a random offset from the colony center for the spawn position
+        const randomAngle = Math.random() * Math.PI * 2;
+        const spawnDistance = 3 + Math.random() * 2; // 3-5 units away from colony
+        
+        // Add new ant to player's colony with offset position on the ground
         const newAnt: PlayerAnt = {
           id: `player-ant-${state.playerAnts.length + 1}`,
-          position: [0, 1, 0], // Start at colony
+          position: [
+            Math.cos(randomAngle) * spawnDistance, // X offset
+            0.5, // Y position on ground
+            Math.sin(randomAngle) * spawnDistance // Z offset
+          ],
           active: false,
           health: 100
         };
@@ -332,28 +340,54 @@ export const useStore = create<GameState>((set, get) => ({
   },
   
   addEnemyAnt: (ant) => {
-    set((state) => ({
-      enemyAnts: [...state.enemyAnts, ant]
-    }));
+    set((state) => {
+      // Check if ant with this ID already exists
+      const exists = state.enemyAnts.some(existing => existing.id === ant.id);
+      if (exists) {
+        // Return unchanged state if ant already exists
+        return state;
+      }
+      
+      // Only add if it doesn't exist
+      return {
+        enemyAnts: [...state.enemyAnts, ant]
+      };
+    });
   },
   
   removeEnemyAnt: (id) => {
-    set((state) => ({
-      enemyAnts: state.enemyAnts.filter(ant => ant.id !== id)
-    }));
+    set((state) => {
+      // Check if the ant exists before attempting to filter
+      const antExists = state.enemyAnts.some(ant => ant.id === id);
+      if (!antExists) {
+        // If the ant doesn't exist, return the state unchanged
+        return state;
+      }
+
+      // Only filter if the ant exists
+      return {
+        enemyAnts: state.enemyAnts.filter(ant => ant.id !== id)
+      };
+    });
   },
   
   updateEnemyAnt: (id, updates) => {
     set((state) => {
-      const enemyAnts = [...state.enemyAnts];
-      const index = enemyAnts.findIndex(a => a.id === id);
-      
-      if (index !== -1) {
-        enemyAnts[index] = {
-          ...enemyAnts[index],
-          ...updates
-        };
+      // Check if the ant exists before attempting to update
+      const index = state.enemyAnts.findIndex(a => a.id === id);
+      if (index === -1) {
+        // If the ant doesn't exist, return the state unchanged
+        return state;
       }
+      
+      // Create a copy of the enemy ants array
+      const enemyAnts = [...state.enemyAnts];
+      
+      // Update the specific ant
+      enemyAnts[index] = {
+        ...enemyAnts[index],
+        ...updates
+      };
       
       return { enemyAnts };
     });
@@ -374,7 +408,7 @@ export const useStore = create<GameState>((set, get) => ({
   resetGame: () => {
     set({
       worldSize: 200,
-      playerPosition: [0, 1, 0],
+      playerPosition: [5, 0.5, 5], // Start player 5 units away from colony
       playerRotation: 0, // Initial rotation
       health: 100,
       food: 50,
@@ -382,7 +416,7 @@ export const useStore = create<GameState>((set, get) => ({
       playerAnts: [
         { 
           id: 'player-ant-1', 
-          position: [0, 1, 0], 
+          position: [5, 0.5, 5], // Start player 5 units away from colony
           active: true,
           health: 100
         }

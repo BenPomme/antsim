@@ -13,10 +13,11 @@ const UIOverlay = () => {
     colonyLevel, 
     enemiesDefeated,
     colonies,
+    playerPosition,
+    showMessage,
+    enemyAnts,
+    resources
   } = useStore();
-  
-  // Get player position from store
-  const playerPosition = useStore(state => state.playerPosition);
   
   // Canvas ref for radar
   const radarCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -54,12 +55,16 @@ const UIOverlay = () => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.code === 'KeyU') {
         if (canUpgrade) {
+          // Actually call the upgrade function
+          useStore.getState().upgradeColony();
           showTemporaryMessage(`Colony upgraded to level ${colonyLevel + 1}!`);
         } else {
           showTemporaryMessage(`Cannot upgrade yet. Need more food and to defeat ${colonyLevel * 3 - enemiesDefeated} more enemies.`);
         }
       } else if (e.code === 'KeyC') {
         if (food >= 5) {
+          // Actually call the function to increase colony size
+          useStore.getState().increaseColonySize();
           showTemporaryMessage(`Added a new ant to the colony!`);
         } else {
           showTemporaryMessage(`Not enough food to add more ants. Need 5 food.`);
@@ -160,8 +165,6 @@ const UIOverlay = () => {
     }
     
     // Draw enemy ants as small red dots
-    const enemyAnts = useStore.getState().enemyAnts || [];
-    
     enemyAnts.forEach(ant => {
       if (!ant.position) return;
       
@@ -184,8 +187,6 @@ const UIOverlay = () => {
     });
     
     // Draw resources on radar
-    const resources = useStore.getState().resources || [];
-    
     resources.forEach(resource => {
       if (!resource.position) return;
       
@@ -207,7 +208,7 @@ const UIOverlay = () => {
       }
     });
     
-  }, [playerPosition, colonies]);
+  }, [playerPosition, colonies, enemyAnts, resources]);
 
   return (
     <div className="ui-container">

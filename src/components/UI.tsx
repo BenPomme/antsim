@@ -14,10 +14,11 @@ const UI = () => {
     colonyLevel, 
     enemiesDefeated,
     colonies,
+    playerPosition,
+    showMessage,
+    enemyAnts,
+    resources
   } = useStore();
-  
-  // Get player position from store
-  const playerPosition = useStore(state => state.playerPosition);
   
   // Canvas ref for radar
   const radarCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -160,9 +161,7 @@ const UI = () => {
       });
     }
     
-    // Draw enemy ants as small red dots (would need to add enemy ant positions to store)
-    const enemyAnts = useStore.getState().enemyAnts || [];
-    
+    // Draw enemy ants as small red dots
     enemyAnts.forEach(ant => {
       if (!ant.position) return;
       
@@ -184,9 +183,7 @@ const UI = () => {
       }
     });
     
-    // Draw resources as green dots (would need to add resource positions to store)
-    const resources = useStore.getState().resources || [];
-    
+    // Draw resources as green or blue dots
     resources.forEach(resource => {
       if (!resource.position) return;
       
@@ -208,7 +205,7 @@ const UI = () => {
       }
     });
     
-  }, [playerPosition, colonies]);
+  }, [playerPosition, colonies, enemyAnts, resources]);
 
   return (
     <Html fullscreen>

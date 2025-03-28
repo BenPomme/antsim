@@ -38,22 +38,52 @@ const Ant = ({
   const { resources, collectResource } = useStore();
   
   // Each ant has a state to determine its behavior
-  const [state, setState] = useState<'idle' | 'hunting' | 'returning' | 'fighting'>('idle');
+  const [state, setState] = useState<'idle' | 'hunting' | 'returning' | 'fighting' | 'exploring'>('idle');
   const [targetResource, setTargetResource] = useState<Resource | null>(null);
   const [carryingResource, setCarryingResource] = useState(false);
   const [position3D] = useState(new Vector3(position[0], position[1], position[2]));
   const [velocity] = useState(new Vector3());
   const [targetPosition] = useState(new Vector3());
   const [resourceType, setResourceType] = useState<'food' | 'material'>('food');
+  const [randomOffset] = useState(Math.random() * 10); // Random offset for varied movement
+  const [explorationTarget, setExplorationTarget] = useState<Vector3 | null>(null);
+  const [lastStateChange] = useState(Date.now());
   
-  // AI behavior decision timer
+  // Enhanced animation states
+  const [legSpeed, setLegSpeed] = useState(12);
+  const [bodyBobHeight, setBodyBobHeight] = useState(0);
+  
+  // AI behavior decision timer with more intelligent decisions
   useEffect(() => {
     const decideAction = () => {
-      if (state === 'idle') {
-        // Find a nearby resource if we're idle
-        if (!isPlayerColony) return; // Only player colony ants hunt resources for now
+      const now = Date.now();
+      
+      // Stay in current state if it hasn't been long enough
+      if (now - lastStateChange < 1000 + Math.random() * 1000) {
+        return;
+      }
+      
+      // Chance to explore rather than just idle
+      if (state === 'idle' && Math.random() < 0.4) {
+        setState('exploring');
         
-        // Find closest resource
+        // Set a random exploration target within a reasonable radius
+        const radius = 5 + Math.random() * 15;
+        const angle = Math.random() * Math.PI * 2;
+        const explorationPoint = new Vector3(
+          colonyPosition[0] + Math.cos(angle) * radius,
+          0,
+          colonyPosition[2] + Math.sin(angle) * radius
+        );
+        setExplorationTarget(explorationPoint);
+        return;
+      }
+      
+      if (state === 'idle' || state === 'exploring') {
+        // Only find resources if player colony or level is high enough
+        if (!isPlayerColony && Math.random() > 0.2) return;
+        
+        // Find closest resource that's not too far
         let closestResource: Resource | null = null;
         let closestDistance = Number.MAX_VALUE;
         
@@ -65,52 +95,114 @@ const Ant = ({
           );
           const distance = position3D.distanceTo(resourcePos);
           
-          if (distance < closestDistance) {
-            closestDistance = distance;
+          // More intelligent resource selection - prefer closer resources
+          // but occasionally go for farther ones too
+          const effectiveDistance = distance / (1 + Math.random() * 0.5);
+          
+          if (effectiveDistance < closestDistance && distance < 25) {
+            closestDistance = effectiveDistance;
             closestResource = resource;
           }
         });
         
-        if (closestResource && closestDistance < 20) {
+        if (closestResource) {
           setTargetResource(closestResource);
           setState('hunting');
+          setLegSpeed(16); // Faster legs when hunting
           const resource = closestResource as Resource;
           targetPosition.set(
             resource.position[0], 
             resource.position[1], 
             resource.position[2]
           );
+        } else if (state !== 'exploring' && Math.random() < 0.3) {
+          // Sometimes explore if no resources found
+          setState('exploring');
+          const radius = 8 + Math.random() * 12;
+          const angle = Math.random() * Math.PI * 2;
+          const explorationPoint = new Vector3(
+            colonyPosition[0] + Math.cos(angle) * radius,
+            0,
+            colonyPosition[2] + Math.sin(angle) * radius
+          );
+          setExplorationTarget(explorationPoint);
         }
       }
     };
     
-    const interval = setInterval(decideAction, 2000 + Math.random() * 2000);
+    const interval = setInterval(decideAction, 1500 + Math.random() * 1500);
     return () => clearInterval(interval);
-  }, [state, resources, position3D, isPlayerColony, targetPosition]);
+  }, [state, resources, position3D, isPlayerColony, targetPosition, colonyPosition]);
   
   useFrame((_, delta) => {
     if (!antRef.current) return;
     
     const time = Date.now() * 0.001;
-    const offset = index * 0.5;
+    const offset = randomOffset + index * 0.5;
     
     // Different behavior based on the ant's state
     if (state === 'idle') {
-      // Wander around the colony
-      const wanderRadius = 2 + Math.sin(time * 0.3 + index) * 0.5;
-      const wanderAngle = time * 0.5 + offset;
+      // More interesting wandering behavior
+      const timeScale = 0.3;
+      const wanderRadius = 2 + Math.sin(time * 0.2 + offset) * 0.8;
+      const wanderAngle = time * 0.4 + offset;
+      
+      // Make a figure-8 pattern
+      const x = Math.sin(wanderAngle) * wanderRadius;
+      const z = Math.sin(wanderAngle * 2) * wanderRadius * 0.5;
       
       position3D.set(
-        colonyPosition[0] + Math.cos(wanderAngle) * wanderRadius,
+        colonyPosition[0] + x,
         0,
-        colonyPosition[2] + Math.sin(wanderAngle) * wanderRadius
+        colonyPosition[2] + z
       );
       
       antRef.current.position.copy(position3D);
-      antRef.current.rotation.y = wanderAngle + Math.PI / 2;
+      
+      // Smooth rotation to face direction of movement
+      const targetRotation = Math.atan2(z - antRef.current.position.z, x - antRef.current.position.x) + Math.PI / 2;
+      antRef.current.rotation.y = targetRotation;
+      
+      // Slower leg movement when idle
+      setLegSpeed(6 + Math.sin(time * 2) * 2);
     } 
+    else if (state === 'exploring') {
+      if (explorationTarget) {
+        const distance = position3D.distanceTo(explorationTarget);
+        
+        if (distance < 0.5) {
+          // Reached exploration target, go back to idle
+          setState('idle');
+          setExplorationTarget(null);
+        } else {
+          // Move towards exploration target with some wandering
+          const direction = new Vector3().subVectors(explorationTarget, position3D).normalize();
+          
+          // Add some randomness to make movement more natural
+          const randomFactor = 0.1;
+          direction.x += (Math.random() - 0.5) * randomFactor;
+          direction.z += (Math.random() - 0.5) * randomFactor;
+          direction.normalize();
+          
+          // Move with variable speed
+          const moveSpeed = 1.5 + Math.sin(time * 3) * 0.2;
+          velocity.copy(direction).multiplyScalar(delta * moveSpeed);
+          position3D.add(velocity);
+          
+          // Rotation towards movement direction with smooth interpolation
+          const targetRotation = Math.atan2(direction.z, direction.x) - Math.PI / 2;
+          antRef.current.rotation.y += (targetRotation - antRef.current.rotation.y) * 0.1;
+          
+          // Body bob up and down while moving
+          setBodyBobHeight(Math.sin(time * 15) * 0.03);
+          antRef.current.position.y = position3D.y + bodyBobHeight;
+          antRef.current.position.x = position3D.x;
+          antRef.current.position.z = position3D.z;
+        }
+      }
+    }
     else if (state === 'hunting' && targetResource) {
-      // Move towards the target resource
+      // Move towards the target resource with more realistic movement
       const resourcePos = new Vector3(
         targetResource.position[0], 
         targetResource.position[1], 
@@ -124,19 +216,35 @@ const Ant = ({
         setResourceType(targetResource.type);
         collectResource(targetResource.id);
         setState('returning');
+        setLegSpeed(20); // Even faster when carrying resources back
       } else {
-        // Move towards the resource
-        velocity.subVectors(resourcePos, position3D).normalize().multiplyScalar(delta * 2);
+        // Calculate direction to resource
+        const direction = new Vector3().subVectors(resourcePos, position3D).normalize();
+        
+        // Add some randomness to path for more natural movement
+        if (Math.random() < 0.05) {
+          direction.x += (Math.random() - 0.5) * 0.1;
+          direction.z += (Math.random() - 0.5) * 0.1;
+          direction.normalize();
+        }
+        
+        // Move towards the resource with excitement (faster near resource)
+        const speedFactor = 2 - Math.min(1, distance / 10);
+        velocity.copy(direction).multiplyScalar(delta * 2.5 * speedFactor);
         position3D.add(velocity);
         
-        // Rotation towards movement direction
-        antRef.current.rotation.y = Math.atan2(velocity.z, velocity.x) - Math.PI / 2;
+        // Smoother rotation toward target
+        const targetRotation = Math.atan2(direction.z, direction.x) - Math.PI / 2;
+        antRef.current.rotation.y += (targetRotation - antRef.current.rotation.y) * 0.2;
+        
+        // Body bob faster when moving quickly
+        setBodyBobHeight(Math.sin(time * 20) * 0.05);
       }
       
-      antRef.current.position.copy(position3D);
+      antRef.current.position.set(position3D.x, position3D.y + bodyBobHeight, position3D.z);
     }
     else if (state === 'returning') {
-      // Return to colony
+      // Return to colony with more determination
       const colonyPos = new Vector3(
         colonyPosition[0],
         colonyPosition[1],
@@ -148,30 +256,60 @@ const Ant = ({
         // Reached the colony, deposit resources
         setCarryingResource(false);
         setState('idle');
+        setLegSpeed(8); // Return to normal speed
       } else {
-        // Move towards colony
-        velocity.subVectors(colonyPos, position3D).normalize().multiplyScalar(delta * 2);
+        // Move directly to colony, minimal wandering when carrying resources
+        const direction = new Vector3().subVectors(colonyPos, position3D).normalize();
+        
+        // Move faster when returning with resources
+        velocity.copy(direction).multiplyScalar(delta * 3);
         position3D.add(velocity);
         
-        // Rotation towards movement direction
-        antRef.current.rotation.y = Math.atan2(velocity.z, velocity.x) - Math.PI / 2;
+        // Quick rotation toward colony
+        const targetRotation = Math.atan2(direction.z, direction.x) - Math.PI / 2;
+        antRef.current.rotation.y += (targetRotation - antRef.current.rotation.y) * 0.3;
+        
+        // Determined movement with resource
+        setBodyBobHeight(Math.sin(time * 24) * 0.05);
       }
       
-      antRef.current.position.copy(position3D);
-    }
-    else if (state === 'fighting') {
-      // Fight with enemy ants or defend colony
-      // This would include movement towards enemies and combat animations
+      antRef.current.position.set(position3D.x, position3D.y + bodyBobHeight, position3D.z);
     }
     
-    // Leg animation
-    if (state !== 'idle') {
-      const walkSpeed = state === 'returning' ? 16 : 12; // Faster when carrying
+    // Enhanced leg animation with varying speeds based on state
+    if (antRef.current) {
+      // Adaptive leg speed based on state and movement
+      const walkSpeed = legSpeed * (state === 'idle' ? 1 : state === 'returning' ? 1.8 : 1.5);
+      
       antRef.current.children.forEach((child, i) => {
         if (child.name.includes('leg')) {
-          // Alternating leg movement
+          // More natural alternating leg movement with phase differences
           const phase = i % 2 === 0 ? 0 : Math.PI;
-          child.rotation.x = Math.sin(time * walkSpeed + i + phase) * 0.3;
+          const legIndex = parseInt(child.name.split('-')[2]);
+          const legPhaseOffset = legIndex * Math.PI / 3; // Stagger legs
+          
+          // Dynamic leg swinging based on speed and state
+          child.rotation.x = Math.sin(time * walkSpeed + legPhaseOffset + phase) * 0.4;
+          
+          // Add lateral leg movement for more realistic walking
+          if (child.name.includes('left')) {
+            child.rotation.z = Math.abs(Math.sin(time * walkSpeed + legPhaseOffset + phase)) * 0.15;
+          } else {
+            child.rotation.z = -Math.abs(Math.sin(time * walkSpeed + legPhaseOffset + phase)) * 0.15;
+          }
+        }
+        
+        // Animate antennae
+        if (child.name.includes('antennae')) {
+          child.children.forEach((antenna, index) => {
+            // Antennae move independently and react to state
+            const antennaSpeed = state === 'hunting' ? 12 : state === 'idle' ? 4 : 8;
+            const antennaOffset = index * Math.PI;
+            
+            // Twitch more when hunting/excited
+            antenna.rotation.x = Math.sin(time * antennaSpeed + antennaOffset) * 0.2;
+            antenna.rotation.z = Math.cos(time * antennaSpeed * 0.7 + antennaOffset) * 0.15;
+          });
         }
       });
     }
@@ -179,23 +317,35 @@ const Ant = ({
   
   return (
     <group ref={antRef} position={position} name={`ant-${index}`}>
-      {/* Ant body */}
-      <group name="body">
+      {/* Ant body - enhanced with more realistic segments */}
+      <group name="body" position={[0, bodyBobHeight, 0]}>
         {/* Head */}
         <mesh castShadow position={[0, 0.1, 0.15]} name="head">
           <sphereGeometry args={[0.1, 10, 10]} />
           <meshStandardMaterial color={color} />
         </mesh>
         
-        {/* Thorax */}
+        {/* Thorax - slightly larger and more detailed */}
         <mesh castShadow position={[0, 0.15, 0]} name="thorax">
           <sphereGeometry args={[0.12, 12, 10]} />
           <meshStandardMaterial color={color} />
         </mesh>
         
-        {/* Abdomen */}
+        {/* Abdomen - even larger for better proportions */}
         <mesh castShadow position={[0, 0.15, -0.25]} name="abdomen">
           <sphereGeometry args={[0.15, 14, 12]} />
+          <meshStandardMaterial color={color} />
+        </mesh>
+        
+        {/* Neck connection between head and thorax */}
+        <mesh castShadow position={[0, 0.13, 0.08]} rotation={[Math.PI/2, 0, 0]} name="neck">
+          <cylinderGeometry args={[0.06, 0.09, 0.08, 8]} />
+          <meshStandardMaterial color={color} />
+        </mesh>
+        
+        {/* Connection between thorax and abdomen */}
+        <mesh castShadow position={[0, 0.15, -0.12]} rotation={[Math.PI/2, 0, 0]} name="waist">
+          <cylinderGeometry args={[0.08, 0.06, 0.1, 8]} />
           <meshStandardMaterial color={color} />
         </mesh>
         
@@ -208,6 +358,10 @@ const Ant = ({
             </mesh>
             <mesh castShadow position={[0.12, -0.05, 0]}>
               <cylinderGeometry args={[0.015, 0.015, 0.2, 8]} />
+              <meshStandardMaterial color={color} />
+            </mesh>
+            <mesh castShadow position={[0.22, -0.1, 0]}>
+              <cylinderGeometry args={[0.01, 0.01, 0.15, 8]} />
               <meshStandardMaterial color={color} />
             </mesh>
           </group>
@@ -223,35 +377,59 @@ const Ant = ({
               <cylinderGeometry args={[0.015, 0.015, 0.2, 8]} />
               <meshStandardMaterial color={color} />
             </mesh>
+            <mesh castShadow position={[-0.22, -0.1, 0]}>
+              <cylinderGeometry args={[0.01, 0.01, 0.15, 8]} />
+              <meshStandardMaterial color={color} />
+            </mesh>
           </group>
         ))}
         
         {/* Antennae */}
         <group position={[0, 0.15, 0.15]} name="antennae">
-          <mesh castShadow position={[0.05, 0.05, 0.08]} rotation={[Math.PI / 4, 0, Math.PI / 8]}>
+          <mesh castShadow position={[0.05, 0.05, 0.08]} rotation={[Math.PI / 4, 0, Math.PI / 8]} name="antenna-left">
             <cylinderGeometry args={[0.01, 0.01, 0.2, 6]} />
             <meshStandardMaterial color={color} />
           </mesh>
           
-          <mesh castShadow position={[-0.05, 0.05, 0.08]} rotation={[Math.PI / 4, 0, -Math.PI / 8]}>
+          <mesh castShadow position={[-0.05, 0.05, 0.08]} rotation={[Math.PI / 4, 0, -Math.PI / 8]} name="antenna-right">
             <cylinderGeometry args={[0.01, 0.01, 0.2, 6]} />
             <meshStandardMaterial color={color} />
           </mesh>
         </group>
         
-        {/* Resource being carried (if any) */}
+        {/* Mandibles for added detail */}
+        <group position={[0, 0.07, 0.22]} name="mandibles">
+          <mesh castShadow position={[0.04, 0, 0]} rotation={[0, 0, Math.PI / 6]}>
+            <boxGeometry args={[0.08, 0.02, 0.02]} />
+            <meshStandardMaterial color={color} />
+          </mesh>
+          
+          <mesh castShadow position={[-0.04, 0, 0]} rotation={[0, 0, -Math.PI / 6]}>
+            <boxGeometry args={[0.08, 0.02, 0.02]} />
+            <meshStandardMaterial color={color} />
+          </mesh>
+        </group>
+        
+        {/* Resource being carried (if any) - more visually appealing */}
         {carryingResource && (
           <mesh 
-            position={[0, 0.3, 0]} 
+            position={[0, 0.35, 0]} 
             castShadow
             name="carried-resource"
           >
             {resourceType === 'food' ? (
-              <sphereGeometry args={[0.08, 8, 8]} />
+              // Food resource (more organic shapes)
+              <>
+                <sphereGeometry args={[0.08, 8, 8]} />
+                <meshStandardMaterial color="#8BC34A" />
+              </>
             ) : (
-              <boxGeometry args={[0.1, 0.1, 0.1]} />
+              // Material resource (more angular)
+              <>
+                <boxGeometry args={[0.08, 0.08, 0.08]} />
+                <meshStandardMaterial color="#795548" />
+              </>
             )}
-            <meshStandardMaterial color={resourceType === 'food' ? '#00cc00' : '#cc9900'} />
           </mesh>
         )}
       </group>
