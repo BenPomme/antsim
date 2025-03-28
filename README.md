@@ -1,5 +1,7 @@
 # Ant Colony Simulator
 
+![Deploy to GitHub Pages](https://github.com/BenPomme/antsim/actions/workflows/gh-pages-deploy.yml/badge.svg)
+
 An interactive 3D ant colony simulator built with React, Three.js, and React Three Fiber.
 
 ![Ant Colony Simulator Screenshot](./screenshot.png)
@@ -10,31 +12,24 @@ You can play the game online at: [https://benpomme.github.io/antsim/](https://be
 
 ## Features
 
-- Control your ant in a 3D environment
-- Manage and grow your colony
-- Collect resources to expand
-- Fight enemy ants with adaptive AI
-- Radar system to navigate the world
-- Multiple controllable ants
-- Enemy ants with self-learning behavior
+- Control your own ant character and navigate a detailed 3D environment
+- Manage your ant colony by collecting resources and increasing its size
+- Worker ants automatically gather food and materials from the environment
+- Battle against enemy ant colonies
+- Upgrade your colony to unlock new abilities
+- Detailed environment with procedural textures, grass, rocks, and more
 
 ## Controls
 
-- **W/Up Arrow**: Move Forward
-- **S/Down Arrow**: Move Backward
-- **A/Left Arrow**: Turn Left
-- **D/Right Arrow**: Turn Right
-- **Space**: Jump (once until landing)
-- **F**: Attack enemy ants
+- **W/S**: Move forward/backward
+- **A/D**: Rotate left/right
 - **E**: Collect resources
-- **U**: Upgrade colony (costs 50 food)
-- **C**: Add new ant to colony (costs 5 food)
-- **1-9**: Switch between different ants
-- **Tab**: Show/Hide controls
+- **Space**: Add new ant to colony
+- **F**: Attack
 
 ## Development
 
-### Installation
+To run the project locally:
 
 ```bash
 # Clone the repository
@@ -44,26 +39,25 @@ cd antsim
 # Install dependencies
 npm install
 
-# Start development server
+# Start the development server
 npm run dev
 ```
 
-### Build
+The development server will start at http://localhost:5173/antsim/
 
-```bash
-npm run build
-```
+## Deployment
+
+The project is automatically deployed to GitHub Pages when changes are pushed to the main branch. The deployment workflow is defined in `.github/workflows/gh-pages-deploy.yml`.
 
 ## Technologies Used
 
 - React
-- TypeScript
 - Three.js
 - React Three Fiber
 - React Three Drei
-- React Three Cannon (Physics)
-- Zustand (State Management)
-- Vite (Build Tool)
+- Zustand for state management
+- TypeScript
+- Vite
 
 ## License
 
