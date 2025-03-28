@@ -391,4 +391,4 @@ export const useStore = create<GameState>((set, get) => ({
   
   colonyPosition: [0, 0, 0],
   movePlayer: (position) => set({ playerPosition: position }),
-})); 
+}));
