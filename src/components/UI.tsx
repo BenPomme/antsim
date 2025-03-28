@@ -1,6 +1,5 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useStore } from '../store/gameStore';
-import { Vector2 } from 'three';
 import { Html } from '@react-three/drei';
 
 // Radar configuration

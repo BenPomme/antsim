@@ -170,7 +170,7 @@ const EnemyAnt = ({ position, colonyId, strength }: EnemyAntProps) => {
         
         if (distanceToColony > PATROL_RADIUS || !newTarget) {
           newState = 'returning';
-          newTarget = [...colonyPosition];
+          newTarget = [colonyPosition[0], colonyPosition[1], colonyPosition[2]] as [number, number, number];
         } else if ((!newTarget || Math.random() < 0.1) && newState === 'patrolling') {
           // Generate new patrol point
           const angle = Math.random() * Math.PI * 2;
@@ -178,7 +178,7 @@ const EnemyAnt = ({ position, colonyId, strength }: EnemyAntProps) => {
           newTarget = [
             colonyPosition[0] + Math.cos(angle) * radius,
             colonyPosition[1],
-            colonyPosition[2] + Math.sin(angle) * radius,
+            colonyPosition[2] + Math.sin(angle) * radius
           ] as [number, number, number];
         }
       }

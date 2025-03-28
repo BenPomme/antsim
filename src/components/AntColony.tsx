@@ -1,8 +1,8 @@
 import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { useBox } from '@react-three/cannon';
-import { useStore, Colony, ColonyRelation } from '../store/gameStore';
 import { Group } from 'three';
+import { Colony, ColonyRelation } from '../store/gameStore';
 
 interface AntColonyProps {
   colony: Colony;
@@ -19,6 +19,84 @@ const getColonyColor = (relation: ColonyRelation): string => {
   }
 };
 
+// Component to render a detailed ant
+const Ant = ({ position, color, index }: { position: [number, number, number], color: string, index: number }) => {
+  const antRef = useRef<Group>(null);
+  
+  useFrame((_, delta) => {
+    if (!antRef.current) return;
+    
+    // Add movement animation
+    const time = Date.now() * 0.001;
+    const offset = index * 0.5;
+    
+    // Make ants walk around the colony
+    antRef.current.position.x = position[0] + Math.sin(time + offset) * 0.2;
+    antRef.current.position.z = position[2] + Math.cos(time + offset) * 0.2;
+    
+    // Rotate ants in the direction they're moving
+    antRef.current.rotation.y = Math.atan2(
+      Math.cos(time + offset),
+      -Math.sin(time + offset)
+    );
+  });
+  
+  return (
+    <group ref={antRef} position={position}>
+      {/* Ant body */}
+      <group>
+        {/* Head */}
+        <mesh castShadow position={[0.15, 0.1, 0]}>
+          <sphereGeometry args={[0.1, 8, 8]} />
+          <meshStandardMaterial color={color} />
+        </mesh>
+        
+        {/* Thorax */}
+        <mesh castShadow position={[0, 0.1, 0]}>
+          <sphereGeometry args={[0.12, 8, 8]} />
+          <meshStandardMaterial color={color} />
+        </mesh>
+        
+        {/* Abdomen */}
+        <mesh castShadow position={[-0.2, 0.1, 0]}>
+          <sphereGeometry args={[0.15, 8, 8]} />
+          <meshStandardMaterial color={color} />
+        </mesh>
+        
+        {/* Legs */}
+        {[...Array(3)].map((_, i) => (
+          <group key={`leg-left-${i}`}>
+            <mesh castShadow position={[0.05 - i * 0.1, 0.1, 0.1]}>
+              <boxGeometry args={[0.05, 0.05, 0.2]} />
+              <meshStandardMaterial color={color} />
+            </mesh>
+          </group>
+        ))}
+        
+        {[...Array(3)].map((_, i) => (
+          <group key={`leg-right-${i}`}>
+            <mesh castShadow position={[0.05 - i * 0.1, 0.1, -0.1]}>
+              <boxGeometry args={[0.05, 0.05, 0.2]} />
+              <meshStandardMaterial color={color} />
+            </mesh>
+          </group>
+        ))}
+        
+        {/* Antennae */}
+        <mesh castShadow position={[0.2, 0.15, 0.05]}>
+          <boxGeometry args={[0.1, 0.02, 0.02]} />
+          <meshStandardMaterial color={color} />
+        </mesh>
+        
+        <mesh castShadow position={[0.2, 0.15, -0.05]}>
+          <boxGeometry args={[0.1, 0.02, 0.02]} />
+          <meshStandardMaterial color={color} />
+        </mesh>
+      </group>
+    </group>
+  );
+};
+
 const AntColony = ({ colony, isPlayerColony = false }: AntColonyProps) => {
   const { position, size, level, relation } = colony;
   const groupRef = useRef<Group>(null);
@@ -33,15 +111,9 @@ const AntColony = ({ colony, isPlayerColony = false }: AntColonyProps) => {
     type: 'Static',
   }));
   
-  // If player colony, it should stay at fixed position
-  // No longer following the player position
-  
   // Animate colony based on type
   useFrame((_, delta) => {
     if (!groupRef.current) return;
-    
-    // For player colony, we don't need to update position anymore
-    // Just keep it in place
     
     // Add some subtle animation
     groupRef.current.rotation.y += delta * 0.2;
@@ -93,10 +165,50 @@ const AntColony = ({ colony, isPlayerColony = false }: AntColonyProps) => {
   return (
     <group position={position}>
       {isPlayerColony ? (
-        renderColony()
+        <>
+          {renderColony()}
+          {/* Render detailed ants around the colony */}
+          {Array.from({ length: size }).map((_, i) => {
+            const angle = (i / size) * Math.PI * 2;
+            const radius = colonySize * 1.5;
+            const antPosition: [number, number, number] = [
+              Math.cos(angle) * radius,
+              0,
+              Math.sin(angle) * radius
+            ];
+            
+            return (
+              <Ant 
+                key={`detailed-ant-${i}`}
+                position={antPosition}
+                color={isPlayerColony ? '#ff9900' : getColonyColor(relation)}
+                index={i}
+              />
+            );
+          })}
+        </>
       ) : (
         <group ref={ref as any}>
           {renderColony()}
+          {/* Render detailed ants around the colony */}
+          {Array.from({ length: size }).map((_, i) => {
+            const angle = (i / size) * Math.PI * 2;
+            const radius = colonySize * 1.5;
+            const antPosition: [number, number, number] = [
+              Math.cos(angle) * radius,
+              0,
+              Math.sin(angle) * radius
+            ];
+            
+            return (
+              <Ant 
+                key={`detailed-ant-${i}`}
+                position={antPosition}
+                color={isPlayerColony ? '#ff9900' : getColonyColor(relation)}
+                index={i}
+              />
+            );
+          })}
         </group>
       )}
     </group>

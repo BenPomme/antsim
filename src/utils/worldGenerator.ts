@@ -171,4 +171,14 @@ export const generateWorld = (worldSize: number): WorldGeneration => {
     resources,
     enemyAnts
   };
+};
+
+export const generateEnemyColony = (position: [number, number, number]): Colony => {
+  return {
+    id: `colony-${Date.now()}`,
+    position,
+    size: Math.floor(Math.random() * 10) + 5,
+    level: Math.floor(Math.random() * 3) + 1,
+    relation: 'enemy'
+  };
 }; 

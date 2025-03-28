@@ -10,16 +10,14 @@ export interface Colony {
   size: number;
   level: number;
   relation: ColonyRelation;
-  resources: number;
 }
 
 // Resource definition
 export interface Resource {
   id: string;
   position: [number, number, number];
-  type: string;
+  type: 'food' | 'material';
   value: number;
-  collected?: boolean;
 }
 
 // Enemy ant definition
@@ -76,13 +74,13 @@ interface GameState {
   updateColony: (id: string, updates: Partial<Colony>) => void;
   
   upgradeColony: () => void;
-  increaseColonySize: (amount: number) => void;
+  increaseColonySize: () => void;
   
   updatePlayerPosition: (position: [number, number, number]) => void;
   switchActiveAnt: (index: number) => void;
   addPlayerAnt: () => void;
   
-  collectResource: (resourceId: string) => void;
+  collectResource: (id: string) => void;
   damagePlayer: (amount: number) => void;
   defeatEnemy: () => void;
   
@@ -94,6 +92,10 @@ interface GameState {
   removeResource: (id: string) => void;
   
   resetGame: () => void;
+  
+  colonyPosition: [number, number, number];
+  movePlayer: (position: [number, number, number]) => void;
+  materials: number;
 }
 
 // Create the game store
@@ -165,28 +167,26 @@ export const useStore = create<GameState>((set, get) => ({
   },
   
   upgradeColony: () => {
-    const { food, enemiesDefeated, colonyLevel } = get();
-    
-    // Check if upgrade requirements are met
-    if (food >= 50 && enemiesDefeated >= colonyLevel * 3) {
-      set((state) => ({
+    const { enemiesDefeated, food } = get();
+    const requiredEnemies = Math.pow(2, get().colonyLevel - 1);
+    const requiredFood = Math.pow(2, get().colonyLevel) * 10;
+
+    if (enemiesDefeated >= requiredEnemies && food >= requiredFood) {
+      set(state => ({
         colonyLevel: state.colonyLevel + 1,
-        food: state.food - 50
+        food: state.food - requiredFood,
+        showMessage: `Colony upgraded to level ${state.colonyLevel + 1}!`,
+        messageTimeout: Date.now() + 3000
       }));
-      
-      // Also update the colony in the colonies array
-      get().updateColony('player-colony', {
-        level: get().colonyLevel
-      });
     }
   },
   
-  increaseColonySize: (amount) => {
+  increaseColonySize: () => {
     const { food } = get();
     const costPerAnt = 5;
     
     // Check if player has enough food
-    if (food >= costPerAnt * amount) {
+    if (food >= costPerAnt) {
       set((state) => {
         // Add new ant to player's colony
         const newAnt: PlayerAnt = {
@@ -197,8 +197,8 @@ export const useStore = create<GameState>((set, get) => ({
         };
         
         return {
-          colonySize: state.colonySize + amount,
-          food: state.food - (costPerAnt * amount),
+          colonySize: state.colonySize + 1,
+          food: state.food - costPerAnt,
           playerAnts: [...state.playerAnts, newAnt]
         };
       });
@@ -241,22 +241,23 @@ export const useStore = create<GameState>((set, get) => ({
   
   addPlayerAnt: () => {
     const { colonySize, increaseColonySize } = get();
-    increaseColonySize(1);
+    increaseColonySize();
   },
   
-  collectResource: (resourceId) => {
-    set((state) => {
-      // Find resource by ID
-      const resource = state.resources.find(r => r.id === resourceId);
-      
+  collectResource: (id: string) => {
+    set(state => {
+      const resource = state.resources.find(r => r.id === id);
       if (!resource) return state;
-      
-      // Determine resource value and update food amount
-      const resourceValue = resource.value;
-      
+
+      const newResources = state.resources.filter(r => r.id !== id);
+      const newFood = state.food + (resource.type === 'food' ? resource.value : 0);
+      const newMaterials = state.materials + (resource.type === 'material' ? resource.value : 0);
+
       return {
-        food: state.food + resourceValue,
-        resources: state.resources.filter(r => r.id !== resourceId)
+        ...state,
+        resources: newResources,
+        food: newFood,
+        materials: newMaterials,
       };
     });
   },
@@ -361,5 +362,9 @@ export const useStore = create<GameState>((set, get) => ({
       colonyLevel: 1,
       colonySize: 10,
     });
-  }
+  },
+  
+  colonyPosition: [0, 0, 0],
+  movePlayer: (position) => set({ playerPosition: position }),
+  materials: 0,
 })); 
