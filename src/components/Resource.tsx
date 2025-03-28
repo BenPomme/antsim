@@ -62,7 +62,7 @@ const FoodResource = ({ position, value }: { position: [number, number, number],
 const MaterialResource = ({ position, value }: { position: [number, number, number], value: number }) => {
   const groupRef = useRef<THREE.Group>(null);
   
-  useFrame((_, delta) => {
+  useFrame(() => {
     if (groupRef.current) {
       // Subtle pulsing animation
       const scale = 1 + Math.sin(Date.now() * 0.001) * 0.05;
@@ -110,7 +110,7 @@ const MaterialResource = ({ position, value }: { position: [number, number, numb
 export default function Resource({ resource }: ResourceProps) {
   const { position, type, value } = resource;
   const { collectResource, playerPosition } = useStore();
-  const [ref, api] = useBox(() => ({
+  const [ref] = useBox(() => ({
     mass: 0,
     position,
     args: [0.8, 0.8, 0.8], // Slightly larger collision box

@@ -256,7 +256,7 @@ export const useStore = create<GameState>((set, get) => ({
   },
   
   addPlayerAnt: () => {
-    const { colonySize, increaseColonySize } = get();
+    const { increaseColonySize } = get();
     increaseColonySize();
   },
   

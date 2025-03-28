@@ -1,5 +1,6 @@
 import { Canvas } from '@react-three/fiber';
-import { KeyboardControls, Stars, EffectComposer, Bloom, Vignette } from '@react-three/drei';
+import { KeyboardControls, Stars } from '@react-three/drei';
+import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing';
 import { Physics } from '@react-three/cannon';
 import { Suspense, useState, useRef } from 'react';
 import Game from './components/Game';

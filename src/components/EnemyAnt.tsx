@@ -153,12 +153,12 @@ const EnemyAnt = ({ position, colonyId, strength }: EnemyAntProps) => {
               playerPosition[2] + playerDirection[2] * 2,
             ] as [number, number, number];
           } else {
-            newTarget = [...playerPosition];
+            newTarget = [playerPosition[0], playerPosition[1], playerPosition[2]] as [number, number, number];
           }
         } else {
           // Sometimes retreat to colony
           newState = 'returning';
-          newTarget = [...colonyPosition];
+          newTarget = [colonyPosition[0], colonyPosition[1], colonyPosition[2]] as [number, number, number];
         }
       } else {
         // Patrol around colony

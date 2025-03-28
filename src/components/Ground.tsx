@@ -1,7 +1,7 @@
 import { useRef } from 'react'
-import { useFrame, useLoader } from '@react-three/fiber'
+import { useFrame } from '@react-three/fiber'
 import { usePlane } from '@react-three/cannon'
-import { Mesh, RepeatWrapping, TextureLoader, Vector2 } from 'three'
+import { Mesh } from 'three'
 import { useStore } from '../store/gameStore'
 
 export default function Ground() {

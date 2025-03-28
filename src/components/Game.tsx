@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useStore } from '../store/gameStore';
 import { Resource, Colony } from '../store/gameStore';
-import { useFrame } from '@react-three/fiber';
 import Player from './Player';
 import ResourceComponent from './Resource';
 import AntColony from './AntColony';
@@ -42,7 +41,6 @@ export default function Game() {
     increaseColonySize, 
     colonySize, 
     addResource, 
-    removeResource, 
     resources,
     collectResource,
     addEnemyColony,
@@ -51,8 +49,6 @@ export default function Game() {
   } = useStore();
   
   // Keep track of game elements
-  const [gameResources, setGameResources] = useState<Resource[]>([]);
-  const [enemyColonies, setEnemyColonies] = useState<Colony[]>([]);
   const [environmentProps, setEnvironmentProps] = useState<{
     rocks: [number, number, number][];
     grass: [number, number, number][];

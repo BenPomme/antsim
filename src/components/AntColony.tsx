@@ -35,16 +35,15 @@ const Ant = ({
   isPlayerColony: boolean
 }) => {
   const antRef = useRef<Group>(null);
-  const { resources, playerPosition, collectResource, health } = useStore();
+  const { resources, collectResource } = useStore();
   
   // Each ant has a state to determine its behavior
   const [state, setState] = useState<'idle' | 'hunting' | 'returning' | 'fighting'>('idle');
   const [targetResource, setTargetResource] = useState<Resource | null>(null);
   const [carryingResource, setCarryingResource] = useState(false);
-  const [position3D] = useState(new Vector3(...position));
+  const [position3D] = useState(new Vector3(position[0], position[1], position[2]));
   const [velocity] = useState(new Vector3());
   const [targetPosition] = useState(new Vector3());
-  const [resourceValue, setResourceValue] = useState(0);
   const [resourceType, setResourceType] = useState<'food' | 'material'>('food');
   
   // AI behavior decision timer
@@ -59,7 +58,11 @@ const Ant = ({
         let closestDistance = Number.MAX_VALUE;
         
         resources.forEach(resource => {
-          const resourcePos = new Vector3(...resource.position);
+          const resourcePos = new Vector3(
+            resource.position[0], 
+            resource.position[1], 
+            resource.position[2]
+          );
           const distance = position3D.distanceTo(resourcePos);
           
           if (distance < closestDistance) {
@@ -71,7 +74,12 @@ const Ant = ({
         if (closestResource && closestDistance < 20) {
           setTargetResource(closestResource);
           setState('hunting');
-          targetPosition.set(...closestResource.position);
+          const resource = closestResource as Resource;
+          targetPosition.set(
+            resource.position[0], 
+            resource.position[1], 
+            resource.position[2]
+          );
         }
       }
     };
@@ -103,13 +111,16 @@ const Ant = ({
     } 
     else if (state === 'hunting' && targetResource) {
       // Move towards the target resource
-      const resourcePos = new Vector3(...targetResource.position);
+      const resourcePos = new Vector3(
+        targetResource.position[0], 
+        targetResource.position[1], 
+        targetResource.position[2]
+      );
       const distance = position3D.distanceTo(resourcePos);
       
       if (distance < 0.5) {
         // Reached the resource, collect it
         setCarryingResource(true);
-        setResourceValue(targetResource.value);
         setResourceType(targetResource.type);
         collectResource(targetResource.id);
         setState('returning');
@@ -126,7 +137,11 @@ const Ant = ({
     }
     else if (state === 'returning') {
       // Return to colony
-      const colonyPos = new Vector3(...colonyPosition);
+      const colonyPos = new Vector3(
+        colonyPosition[0],
+        colonyPosition[1],
+        colonyPosition[2]
+      );
       const distance = position3D.distanceTo(colonyPos);
       
       if (distance < 0.5) {
@@ -192,7 +207,7 @@ const Ant = ({
               <meshStandardMaterial color={color} />
             </mesh>
             <mesh castShadow position={[0.12, -0.05, 0]}>
-              <cylinderGeometry args={[0.015, 0.015, 0.2, 8]} rotation={[0, 0, Math.PI / 3]} />
+              <cylinderGeometry args={[0.015, 0.015, 0.2, 8]} />
               <meshStandardMaterial color={color} />
             </mesh>
           </group>
@@ -205,7 +220,7 @@ const Ant = ({
               <meshStandardMaterial color={color} />
             </mesh>
             <mesh castShadow position={[-0.12, -0.05, 0]}>
-              <cylinderGeometry args={[0.015, 0.015, 0.2, 8]} rotation={[0, 0, -Math.PI / 3]} />
+              <cylinderGeometry args={[0.015, 0.015, 0.2, 8]} />
               <meshStandardMaterial color={color} />
             </mesh>
           </group>

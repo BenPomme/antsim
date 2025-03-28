@@ -60,8 +60,7 @@ const generateColony = (worldSize: number, centerDistance: number): Colony => {
     position,
     size,
     level,
-    relation,
-    resources: Math.floor(Math.random() * 100),
+    relation
   };
 };
 

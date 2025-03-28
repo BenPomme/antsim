@@ -95,7 +95,6 @@ export default function Player() {
 
     // Apply current rotation to get proper forward direction
     const forward = new Vector3(0, 0, -1).applyAxisAngle(new Vector3(0, 1, 0), rotation.current);
-    const right = new Vector3(1, 0, 0).applyAxisAngle(new Vector3(0, 1, 0), rotation.current);
 
     // Handle movement
     if (isMoving.current) {
