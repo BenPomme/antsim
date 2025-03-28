@@ -19,11 +19,30 @@ export default function Ground() {
     metalness: 0.1,
     color: '#654321', // Brown soil
     onBeforeCompile: (shader: any) => {
+      // Add UV coordinates to the shader
+      shader.vertexShader = shader.vertexShader.replace(
+        '#include <common>',
+        `
+        #include <common>
+        varying vec2 vUv;
+        `
+      );
+      
+      // Assign UV coordinates in the vertex shader
+      shader.vertexShader = shader.vertexShader.replace(
+        '#include <begin_vertex>',
+        `
+        #include <begin_vertex>
+        vUv = uv;
+        `
+      );
+      
       // Add procedural noise to the ground
       shader.fragmentShader = shader.fragmentShader.replace(
         '#include <common>',
         `
         #include <common>
+        varying vec2 vUv;
         
         // Procedural noise functions
         float random(vec2 st) {

@@ -52,6 +52,7 @@ interface GameState {
   playerPosition: [number, number, number];
   health: number;
   food: number;
+  materials: number;
   playerAnts: PlayerAnt[];
   activeAntIndex: number;
   
@@ -67,11 +68,16 @@ interface GameState {
   colonyLevel: number;
   colonySize: number;
   
+  // UI state
+  showMessage: string;
+  messageTimeout: number;
+  
   // Methods
   moveColony: (position: [number, number, number]) => void;
   addColony: (colony: Colony) => void;
   removeColony: (id: string) => void;
   updateColony: (id: string, updates: Partial<Colony>) => void;
+  addEnemyColony: (colony: Colony) => void;
   
   upgradeColony: () => void;
   increaseColonySize: () => void;
@@ -95,7 +101,6 @@ interface GameState {
   
   colonyPosition: [number, number, number];
   movePlayer: (position: [number, number, number]) => void;
-  materials: number;
 }
 
 // Create the game store
@@ -105,6 +110,7 @@ export const useStore = create<GameState>((set, get) => ({
   playerPosition: [0, 1, 0],
   health: 100,
   food: 50,
+  materials: 20,
   playerAnts: [
     { 
       id: 'player-ant-1', 
@@ -120,6 +126,10 @@ export const useStore = create<GameState>((set, get) => ({
   enemiesDefeated: 0,
   colonyLevel: 1,
   colonySize: 10,
+  
+  // UI state
+  showMessage: '',
+  messageTimeout: 0,
   
   // Methods
   moveColony: (position) => {
@@ -141,6 +151,12 @@ export const useStore = create<GameState>((set, get) => ({
   addColony: (colony) => {
     set((state) => ({
       colonies: [...state.colonies, colony]
+    }));
+  },
+  
+  addEnemyColony: (colony) => {
+    set((state) => ({
+      colonies: [...state.colonies, {...colony, relation: 'enemy'}]
     }));
   },
   
@@ -248,16 +264,24 @@ export const useStore = create<GameState>((set, get) => ({
     set(state => {
       const resource = state.resources.find(r => r.id === id);
       if (!resource) return state;
-
-      const newResources = state.resources.filter(r => r.id !== id);
-      const newFood = state.food + (resource.type === 'food' ? resource.value : 0);
-      const newMaterials = state.materials + (resource.type === 'material' ? resource.value : 0);
-
+      
+      // Add value to appropriate store
+      let food = state.food;
+      let materials = state.materials;
+      
+      if (resource.type === 'food') {
+        food += resource.value;
+      } else {
+        materials += resource.value;
+      }
+      
+      // Remove resource from world
+      const resources = state.resources.filter(r => r.id !== id);
+      
       return {
-        ...state,
-        resources: newResources,
-        food: newFood,
-        materials: newMaterials,
+        resources,
+        food,
+        materials,
       };
     });
   },
@@ -328,14 +352,14 @@ export const useStore = create<GameState>((set, get) => ({
     });
   },
   
-  addResource: (resource) => {
-    set((state) => ({
+  addResource: (resource: Resource) => {
+    set(state => ({
       resources: [...state.resources, resource]
     }));
   },
   
-  removeResource: (id) => {
-    set((state) => ({
+  removeResource: (id: string) => {
+    set(state => ({
       resources: state.resources.filter(r => r.id !== id)
     }));
   },
@@ -346,6 +370,7 @@ export const useStore = create<GameState>((set, get) => ({
       playerPosition: [0, 1, 0],
       health: 100,
       food: 50,
+      materials: 20,
       playerAnts: [
         { 
           id: 'player-ant-1', 
@@ -366,5 +391,4 @@ export const useStore = create<GameState>((set, get) => ({
   
   colonyPosition: [0, 0, 0],
   movePlayer: (position) => set({ playerPosition: position }),
-  materials: 0,
 })); 

@@ -119,7 +119,7 @@ export default function Game() {
     }, 5000);
 
     return () => clearInterval(spawnInterval);
-  }, [increaseColonySize]);
+  }, [increaseColonySize, addResource, addEnemyColony, updateColony]);
 
   // Generate new resources
   const generateNewResource = () => {
