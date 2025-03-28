@@ -2,7 +2,7 @@ import { Canvas } from '@react-three/fiber';
 import { KeyboardControls, Stars } from '@react-three/drei';
 import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing';
 import { Physics } from '@react-three/cannon';
-import { Suspense, useState, useRef } from 'react';
+import { Suspense, useState, useRef, useEffect } from 'react';
 import Game from './components/Game';
 import UIOverlay from './components/UIOverlay';
 import './App.css';
@@ -54,6 +54,18 @@ const AnimatedAnt = () => {
 function App() {
   const [gameStarted, setGameStarted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [enableEffects, setEnableEffects] = useState(true);
+
+  // Try to detect errors with effect composer and disable if needed
+  useEffect(() => {
+    const handleError = () => {
+      console.warn("Disabling post-processing effects due to errors");
+      setEnableEffects(false);
+    };
+
+    window.addEventListener('error', handleError);
+    return () => window.removeEventListener('error', handleError);
+  }, []);
 
   const startGame = () => {
     setLoading(true);
@@ -141,18 +153,22 @@ function App() {
                 </Physics>
                 
                 {/* Post-processing effects */}
-                <EffectComposer>
-                  <Bloom 
-                    luminanceThreshold={0.2} 
-                    luminanceSmoothing={0.9} 
-                    intensity={0.4} 
-                  />
-                  <Vignette
-                    offset={0.5}
-                    darkness={0.5}
-                    eskil={false}
-                  />
-                </EffectComposer>
+                {enableEffects && (
+                  <Suspense fallback={null}>
+                    <EffectComposer>
+                      <Bloom 
+                        luminanceThreshold={0.2} 
+                        luminanceSmoothing={0.9} 
+                        intensity={0.4} 
+                      />
+                      <Vignette
+                        offset={0.5}
+                        darkness={0.5}
+                        eskil={false}
+                      />
+                    </EffectComposer>
+                  </Suspense>
+                )}
               </Suspense>
             </Canvas>
           </KeyboardControls>
